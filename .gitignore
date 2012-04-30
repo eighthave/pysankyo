@@ -1,0 +1,9 @@
+# tarball from Sankyo
+Rel_SHT/
+Rel_SHT.tar.gz
+
+# build products
+APITestforUSBHID_SHT
+
+# log file
+Sankyo-SHT610.txt
