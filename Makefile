@@ -35,6 +35,13 @@ LIBCOLLECTLOGEX_OBJS =  Rel_SHT/All_Lib/CollectLogEx.o \
 all: $(TESTAPP)
 
 
+test: test.c $(STATIC_LIB)
+	$(CC) -IRel_SHT/Dev -o test test.c $(STATIC_LIB) -lpthread -lusb
+
+libpysht610.so: $(STATIC_LIB)
+
+
+
 $(LIB_OBJS): Rel_SHT.tar.gz
 	bsdtar xzf Rel_SHT.tar.gz
 	sed -i 's|USER_LIB_PATH = /usr/lib|USER_LIB_PATH = $(CWD)/Rel_SHT/All_Lib|' \
