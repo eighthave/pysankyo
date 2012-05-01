@@ -1,5 +1,9 @@
 
 #include <Python.h>
+#include <stdio.h>
+
+#include "Prtcl_USB_HID_SHT.h"
+#include "USB_HID_Def_SHT.h"
 
 static PyObject* CardDispenser_init(PyObject *self, PyObject *args)
 {
@@ -15,12 +19,26 @@ static PyObject* CardDispenser_doSomething(PyObject *self, PyObject *args)
     return Py_None;
 }
 
+static PyObject* CardDispenser_version(PyObject *self)
+{
+    printf("sht610.version called\n");
+    LIB_INFORMATION_SHT libinfo;
+    USB_HID_SHT_GetLibraryRevision(&libinfo);
+    return Py_BuildValue("ssss",
+                         libinfo.InterfaceLib.Filename,
+                         libinfo.InterfaceLib.Revision,
+                         libinfo.ProtocolLib.Filename,
+                         libinfo.ProtocolLib.Revision);
+}
+
 static PyMethodDef sht610Methods[] = 
 {
     {"__init__", CardDispenser_init, METH_VARARGS, 
 	 "doc string"},
     {"doSomething", CardDispenser_doSomething, METH_VARARGS,
 	 "doc string"},
+    {"version", CardDispenser_version, METH_VARARGS,
+	 "return the interface and protocol version information"},
     {NULL},
 };
 

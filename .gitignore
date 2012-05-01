@@ -3,8 +3,12 @@ Rel_SHT/
 Rel_SHT.tar.gz
 
 # build products
+build/
 APITestforUSBHID_SHT
+sht610.o
+sht610.so
 test
+TAGS
 
 # log file
 Sankyo-SHT610-log.txt

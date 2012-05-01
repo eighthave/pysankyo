@@ -32,14 +32,18 @@ LIBCOLLECTLOGEX_OBJS =  Rel_SHT/All_Lib/CollectLogEx.o \
 
 
 #all: $(STATIC_LIB) $(LIBPRTCL) $(LIBUSB_HID_INTERFACE) $(LIBCOLLECTLOGEX)
-all: $(TESTAPP)
+all: $(TESTAPP) test sht610.so
 
 
 test: test.c $(STATIC_LIB)
 	$(CC) -IRel_SHT/Dev -o test test.c $(STATIC_LIB) -lpthread -lusb
 
-libpysht610.so: $(STATIC_LIB)
 
+sht610.so: $(STATIC_LIB) sht610module.c
+	$(CC) -IRel_SHT/Dev $(shell pkg-config --cflags python) \
+		-o sht610.o -c sht610module.c
+	$(CC) -shared -o sht610.so sht610.o \
+		$(LIB_OBJS) -lusb -lpthread $(shell pkg-config --libs python)
 
 
 $(LIB_OBJS): Rel_SHT.tar.gz
