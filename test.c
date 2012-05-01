@@ -68,7 +68,41 @@ void main(void)
     
 // Executes Initialize command, and then receives a reply for the command 
 
-    printf("Executing...\n");
+    printf("Executing 'initialize' command...\n");
+    ret = USB_HID_SHT_ExecuteCommand(_PRODUCT_ID,
+                                     currentserial,
+                                     &command,
+                                     _TIMEOUT,
+                                     &reply);
+    if(ret == _USB_HID_SHT_NO_ERROR)
+    {
+        printf("command finished with no error\n");
+        // init command successfully finished, now parse reply
+        if( reply.replyType == PositiveReply )
+        {
+            printf("received positive reply\n");
+        }
+        else if( reply.replyType == NegativeReply )
+        {
+            printf("received negative reply\n");
+        }
+        else
+        {
+            printf("received other reply\n");
+        }
+    }
+    else
+    {
+        printf("command finished with ERROR\n");
+    }
+
+
+	data[0] = 0x31;
+	command.CommandCode = 0x76;
+	command.ParameterCode = 0x41;
+	command.Data.pBody = data;
+	command.Data.Size = 1;
+    printf("Executing 'dispense' command...\n");
     ret = USB_HID_SHT_ExecuteCommand(_PRODUCT_ID,
                                      currentserial,
                                      &command,
