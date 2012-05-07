@@ -1,0 +1,7 @@
+#
+# Sankyo Seiki Mfg. Co., Ltd SHT610-0630
+#
+
+BUS=="usb", SYSFS{idVendor}=="077a", SYSFS{idProduct}=="10aa", ACTION=="add", GROUP="dialout", MODE="0664", SYMLINK+="sht610-%k-%n"
+
+SUBSYSTEM=="usb_device", SYSFS{idVendor}=="077a", SYSFS{idProduct}=="10aa", ACTION=="add", GROUP="dialout", MODE="0664"
