@@ -3,6 +3,7 @@ Rel_SHT/
 Rel_SHT.tar.gz
 
 # build products
+*.pyc
 build/
 APITestforUSBHID_SHT
 sht610.o
