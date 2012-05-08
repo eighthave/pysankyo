@@ -44,6 +44,7 @@ static PyObject* CardDispenser_new(PyTypeObject *type, PyObject *args, PyObject 
 
 static PyObject* CardDispenser_init(CardDispenser* self, PyObject* args, PyObject *kwds)
 {
+    printf("sht610.__init__ called\n");
     PyObject* serial = NULL;
 
     static char *kwlist[] = {"productid", "serial", "timeout", NULL};
@@ -59,9 +60,8 @@ static PyObject* CardDispenser_init(CardDispenser* self, PyObject* args, PyObjec
     }
     
     printf("self %p\n", self);
-    printf("productid: %lx serial: %p timeout: %lu\n",
-           self->productid, serial, self->timeout);
-    printf("sht610.__init__ called\n");
+    printf("productid: %lx serial: %p '%s' timeout: %lu\n",
+           self->productid, serial, PyString_AsString(self->serial), self->timeout);
 
     return 0;
 }
@@ -89,7 +89,7 @@ static PyObject* CardDispenser_open(CardDispenser* self, PyObject* args)
 
     bzero(currentserial, sizeof(currentserial));
 
-    printf("productid: %lx serial: %p %s timeout: %lu\n",
+    printf("productid: %lx serial: %p '%s' timeout: %lu\n",
            self->productid, self->serial, serial, self->timeout);
  
     ret = USB_HID_SHT_ConnectDevice(self->productid,
@@ -113,7 +113,7 @@ static PyObject* CardDispenser_open(CardDispenser* self, PyObject* args)
         self->serial = PyString_FromString(currentserial);
         Py_XDECREF(tmp);
     }
-    printf("productid: %lx serial: %p %s timeout: %lu\n",
+    printf("productid: %lx serial: %p '%s' timeout: %lu\n",
            self->productid, self->serial, currentserial, self->timeout);
 
     Py_INCREF(Py_True);
