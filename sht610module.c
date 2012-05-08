@@ -103,6 +103,8 @@ static PyObject* CardDispenser_open(CardDispenser* self, PyObject* args)
     else
     {
         printf("command finished with ERROR: %lx\n", ret);
+        Py_INCREF(Py_False);
+        return Py_False;
     }
 
     if(serial == NULL || strcmp(serial, currentserial) != 0)
@@ -114,8 +116,8 @@ static PyObject* CardDispenser_open(CardDispenser* self, PyObject* args)
     printf("productid: %lx serial: %p %s timeout: %lu\n",
            self->productid, self->serial, currentserial, self->timeout);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_INCREF(Py_True);
+    return Py_True;
 }
 
 static PyObject* CardDispenser_close(CardDispenser* self, PyObject* args)
