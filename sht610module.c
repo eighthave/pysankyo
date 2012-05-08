@@ -12,6 +12,7 @@ typedef struct {
     PyObject_HEAD
     unsigned long productid;  /* USB productID */
     PyObject* serial;         /* USB serial */
+    unsigned long timeout;    /* timeout for executing commands in ms */
 } CardDispenser;
 
 
@@ -27,13 +28,14 @@ static PyObject* CardDispenser_new(PyTypeObject *type, PyObject *args, PyObject 
 
     self = (CardDispenser *)type->tp_alloc(type, 0);
     if (self != NULL) {
+        self->productid = 0x10aa;
         self->serial = PyString_FromString("");
         if (self->serial == NULL)
         {
             Py_DECREF(self);
             return NULL;
         }
-        self->productid = 0x10aa;
+        self->timeout = 20000;
     }
 
     return (PyObject *)self;
@@ -43,22 +45,22 @@ static PyObject* CardDispenser_new(PyTypeObject *type, PyObject *args, PyObject 
 static PyObject* CardDispenser_init(CardDispenser* self, PyObject* args, PyObject *kwds)
 {
     PyObject* serial = NULL;
-    PyObject* tmp;
 
-    static char *kwlist[] = {"productid", "serial", NULL};
+    static char *kwlist[] = {"productid", "serial", "timeout", NULL};
 
-    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|kO", kwlist, 
-                                      &self->productid, &serial))
+    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|kOk", kwlist,
+                                      &self->productid, &serial, &self->timeout))
         return (PyObject*)-1;
     if (serial) {
-        tmp = self->serial;
+        PyObject* tmp = self->serial;
         Py_INCREF(serial);
         self->serial = serial;
         Py_XDECREF(tmp);
     }
     
     printf("self %p\n", self);
-    printf("productid: %lx serial: %p\n", self->productid, serial);
+    printf("productid: %lx serial: %p timeout: %lu\n",
+           self->productid, serial, self->timeout);
     printf("sht610.__init__ called\n");
 
     return 0;
@@ -119,6 +121,8 @@ static PyMemberDef CardDispenser_members[] = {
      "USB productId of targetted device"},
     {"serial", T_OBJECT_EX, offsetof(CardDispenser, serial), 0,
      "USB serial number of targetted device"},
+    {"timeout", T_ULONG, offsetof(CardDispenser, timeout), 0,
+     "timeout for executing commands in ms"},
     {NULL}  /* Sentinel */
 };
 
