@@ -81,7 +81,39 @@ static PyObject* CardDispenser_version(CardDispenser* self, PyObject* args)
 static PyObject* CardDispenser_open(CardDispenser* self, PyObject* args)
 {
     printf("sht610.open called\n");
-    printf("productid: %lx serial: %p\n", self->productid, self->serial);
+    long ret;
+    char currentserial[16];
+    char* serial = PyString_AsString(self->serial);
+    if(strcmp(serial, "") == 0)
+        serial = NULL;
+
+    bzero(currentserial, sizeof(currentserial));
+
+    printf("productid: %lx serial: %p %s timeout: %lu\n",
+           self->productid, self->serial, serial, self->timeout);
+ 
+    ret = USB_HID_SHT_ConnectDevice(self->productid,
+                                    serial,
+                                    currentserial);
+
+    if(ret == _USB_HID_SHT_NO_ERROR)
+    {
+        printf("command finished with no error\n");
+    }
+    else
+    {
+        printf("command finished with ERROR: %lx\n", ret);
+    }
+
+    if(serial == NULL || strcmp(serial, currentserial) != 0)
+    {
+        PyObject* tmp = self->serial;
+        self->serial = PyString_FromString(currentserial);
+        Py_XDECREF(tmp);
+    }
+    printf("productid: %lx serial: %p %s timeout: %lu\n",
+           self->productid, self->serial, currentserial, self->timeout);
+
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -89,8 +121,8 @@ static PyObject* CardDispenser_open(CardDispenser* self, PyObject* args)
 static PyObject* CardDispenser_close(CardDispenser* self, PyObject* args)
 {
     printf("sht610.close called\n");
-//    USB_HID_SHT_DisconnectDevice(c_ulong(self.productid),
-//                                 c_char_p(self.currentserial)
+    USB_HID_SHT_DisconnectDevice(self->productid,
+                                 PyString_AsString(self->serial));
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -98,6 +130,45 @@ static PyObject* CardDispenser_close(CardDispenser* self, PyObject* args)
 static PyObject* CardDispenser_reset(CardDispenser* self, PyObject* args)
 {
     printf("sht610.reset called\n");
+    long ret;
+    COMMAND_SHT command;                // command message to send
+    REPLY_SHT reply;                    // reply message to receive
+    unsigned char data[] = { 0x30, 0x30, 0x30,}; //init command data
+
+    command.CommandCode = 0x30;    //init command
+    command.ParameterCode = 0x30;
+    command.Data.pBody = NULL;     // start address of region where data is stored
+    command.Data.Size = 0;         // data size in bytes
+
+// Executes Initialize command, and then receives a reply for the command
+    printf("Executing 'initialize' command...\n");
+    ret = USB_HID_SHT_ExecuteCommand(self->productid,
+                                     PyString_AsString(self->serial),
+                                     &command,
+                                     self->timeout,
+                                     &reply);
+    if(ret == _USB_HID_SHT_NO_ERROR)
+    {
+        printf("command finished with no error\n");
+        // init command successfully finished, now parse reply
+        if( reply.replyType == PositiveReply )
+        {
+            printf("received positive reply\n");
+        }
+        else if( reply.replyType == NegativeReply )
+        {
+            printf("received negative reply\n");
+        }
+        else
+        {
+            printf("received other reply\n");
+        }
+    }
+    else
+    {
+        printf("command finished with ERROR\n");
+    }
+
     Py_INCREF(Py_None);
     return Py_None;
 }
