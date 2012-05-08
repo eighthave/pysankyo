@@ -127,24 +127,25 @@ static PyObject* CardDispenser_close(CardDispenser* self, PyObject* args)
     return Py_None;
 }
 
-static PyObject* CardDispenser_reset(CardDispenser* self, PyObject* args)
+static long execute_command(CardDispenser* self,
+                            unsigned char command, unsigned char parameter,
+                            unsigned char* data, unsigned long size)
 {
-    printf("sht610.reset called\n");
     long ret;
-    COMMAND_SHT command;                // command message to send
+    COMMAND_SHT command_sht;                // command message to send
     REPLY_SHT reply;                    // reply message to receive
-    unsigned char data[] = { 0x30, 0x30, 0x30,}; //init command data
+    //unsigned char data[] = { 0x30, 0x30, 0x30,}; //init command data
 
-    command.CommandCode = 0x30;    //init command
-    command.ParameterCode = 0x30;
-    command.Data.pBody = NULL;     // start address of region where data is stored
-    command.Data.Size = 0;         // data size in bytes
+    command_sht.CommandCode = command;    //init command
+    command_sht.ParameterCode = parameter;
+    command_sht.Data.pBody = data;        // start address of region where data is stored
+    command_sht.Data.Size = size;         // data size in bytes
 
 // Executes Initialize command, and then receives a reply for the command
     printf("Executing 'initialize' command...\n");
     ret = USB_HID_SHT_ExecuteCommand(self->productid,
                                      PyString_AsString(self->serial),
-                                     &command,
+                                     &command_sht,
                                      self->timeout,
                                      &reply);
     if(ret == _USB_HID_SHT_NO_ERROR)
@@ -163,12 +164,52 @@ static PyObject* CardDispenser_reset(CardDispenser* self, PyObject* args)
         {
             printf("received other reply\n");
         }
+        return 1;
     }
     else
     {
         printf("command finished with ERROR\n");
+        return 0;
     }
+}
 
+static PyObject* CardDispenser_reset(CardDispenser* self, PyObject* args)
+{
+    execute_command(self, 0x30, 0x30, NULL, 0);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* CardDispenser_issue_middle(CardDispenser* self, PyObject* args)
+{
+    unsigned char data[] = {0x31};
+    execute_command(self, 0x76, 0x44, data, 1);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* CardDispenser_issue_middle_to_clamp(CardDispenser* self,
+                                                     PyObject* args)
+{
+    unsigned char data[] = {0x31};
+    execute_command(self, 0x76, 0x45, data, 1);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* CardDispenser_issue_middle_to_fall(CardDispenser* self,
+                                                    PyObject* args)
+{
+    unsigned char data[] = {0x31};
+    execute_command(self, 0x76, 0x46, data, 1);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* CardDispenser_issue_clamp(CardDispenser* self, PyObject* args)
+{
+    unsigned char data[] = {0x31};
+    execute_command(self, 0x76, 0x41, data, 1);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -184,6 +225,17 @@ static PyMethodDef CardDispenser_methods[] =
 	 "close the connection to the device"},
     {"reset", (PyCFunction)CardDispenser_reset, METH_NOARGS,
 	 "reset the device and initialize it"},
+    {"issue_middle",
+     (PyCFunction)CardDispenser_issue_middle, METH_NOARGS,
+	 "dispense from card stack to the middle position"},
+    {"issue_middle_to_clamp",
+     (PyCFunction)CardDispenser_issue_middle_to_clamp, METH_NOARGS,
+	 "dispense from middle position to clamp position"},
+    {"issue_middle_to_fall",
+     (PyCFunction)CardDispenser_issue_middle_to_fall, METH_NOARGS,
+	 "dispense from middle position to falling out"},
+    {"issue_clamp", (PyCFunction)CardDispenser_issue_clamp, METH_NOARGS,
+	 "dispense to the clamp position"},
     {NULL},
 };
 
